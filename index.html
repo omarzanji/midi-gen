@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIDI Gen — AI Music Producer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header / Transport Bar -->
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">MIDI<span class="logo-accent">Gen</span></span>
+      <div class="transport-controls">
+        <button class="transport-btn" id="play-btn" title="Play (Space)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><polygon points="2,0 14,7 2,14"/></svg>
+        </button>
+        <button class="transport-btn" id="stop-btn" title="Stop">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect width="12" height="12" rx="1"/></svg>
+        </button>
+      </div>
+      <div class="bpm-control">
+        <label>BPM</label>
+        <input type="number" id="bpm-input" value="120" min="40" max="300">
+      </div>
+      <div class="bar-display" id="bar-counter">--- | Bar 1</div>
+      <div class="header-song-controls">
+        <button class="transport-btn song-btn" id="header-save-btn" title="Save Song">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </button>
+        <button class="transport-btn song-btn" id="header-load-btn" title="Load Song">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator">
+        <div class="status-dot" id="status-dot" title="API Status"></div>
+      </div>
+      <select class="model-select" id="model-select"></select>
+      <input class="api-key-input" id="api-key-input" type="password" placeholder="Gemini API Key">
+    </div>
+  </div>
+
+  <!-- Arrangement Timeline -->
+  <div class="arrangement-bar">
+    <div class="arrangement-label">ARRANGEMENT</div>
+    <div class="arrangement-timeline" id="arrangement-timeline">
+      <div class="arrangement-empty">No sections yet</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Layers Panel -->
+    <div class="layers-panel">
+      <div class="panel-header">
+        <span class="panel-title">Layers</span>
+        <span class="panel-count" id="layer-count">0</span>
+      </div>
+      <div class="layers-list" id="layers-list">
+        <div class="layers-empty">No layers yet. Type a prompt to get started!</div>
+      </div>
+
+      <!-- Song Management -->
+      <div class="song-management">
+        <div class="panel-header">
+          <span class="panel-title">Songs</span>
+          <div class="song-actions">
+            <button class="song-action-btn" id="save-song-btn" title="Save Song">Save</button>
+            <button class="song-action-btn" id="export-song-btn" title="Export JSON">Export</button>
+            <label class="song-action-btn" id="import-song-btn" title="Import JSON">Import
+              <input type="file" id="import-file-input" accept=".json" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="saved-songs-list" id="saved-songs-list"></div>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="center-area">
+
+      <!-- Visualizer -->
+      <div class="visualizer-area">
+        <canvas id="visualizer-canvas"></canvas>
+        <div class="song-info-overlay">
+          <span class="info-chip" id="song-key">Key: C</span>
+          <span class="info-chip" id="song-scale">Scale: major</span>
+          <span class="info-chip" id="song-layers">Layers: 0</span>
+          <span class="info-chip" id="song-section">Section: ---</span>
+        </div>
+      </div>
+
+      <!-- Prompt Area -->
+      <div class="prompt-area">
+        <div class="prompt-history" id="prompt-history">
+          <div class="history-item system">
+            Welcome to MIDI Gen! Enter your Gemini API key, then describe the music you want. Try "Create a generative track with intro, verse, and chorus" to get started.
+          </div>
+        </div>
+
+        <div id="tool-log" class="tool-log hidden"></div>
+
+        <div class="quick-actions">
+          <button class="quick-action" data-prompt="Create a basic drum beat with kick, snare, and hi-hat">Drums</button>
+          <button class="quick-action" data-prompt="Add a funky bass line that grooves with the current beat">Bass</button>
+          <button class="quick-action" data-prompt="Add a dreamy pad layer to fill out the harmony">Pad</button>
+          <button class="quick-action" data-prompt="Add a catchy melody on top of what's playing">Melody</button>
+          <button class="quick-action" data-prompt="Create a full song with intro (8 bars), verse (32 bars), chorus (16 bars), and outro (8 bars)">Full Song</button>
+          <button class="quick-action" data-prompt="Apply algorithmic mutations to all layers — dropout, humanize, and rotate for generative variation">Mutate</button>
+          <button class="quick-action" data-prompt="Generate an evolving sequence using euclidean rhythms and Markov chains">Generative</button>
+          <button class="quick-action" data-prompt="Make it more complex — add 2-3 complementary layers with generative patterns">Evolve</button>
+        </div>
+
+        <div class="prompt-input-area">
+          <textarea class="prompt-input" id="prompt-input" placeholder="Describe the music you want... (e.g., 'generative beat with 32-bar evolving sections')" rows="1"></textarea>
+          <button class="send-btn" id="send-btn" title="Generate">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Saved Songs Dropdown (for header Load button) -->
+  <div class="saved-songs-dropdown hidden" id="saved-songs-dropdown"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/tone@latest/build/Tone.js"></script>
+  <script src="engine.js"></script>
+  <script src="gemini.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
