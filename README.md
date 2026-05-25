@@ -2,6 +2,9 @@
 
 AI-powered music producer in the browser. Describe what you want to hear and MIDI Gen creates multi-layer compositions with synthesizers, drums, and effects.
 
+<img width="1727" height="1040" alt="image" src="https://github.com/user-attachments/assets/7c76ba63-ce77-4031-8811-860b5ae94807" />
+
+
 ## Features
 
 - Natural language music creation via AI
